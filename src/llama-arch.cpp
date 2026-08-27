@@ -2,7 +2,6 @@
 
 #include "llama-impl.h"
 
-#include <cctype>
 #include <map>
 #include <set>
 #include <vector>
@@ -827,69 +826,6 @@ llm_arch llm_arch_from_string(const std::string & name) {
     }
 
     return LLM_ARCH_UNKNOWN;
-}
-
-static std::string llm_arch_alnum_lower(const std::string & name) {
-    std::string out;
-    out.reserve(name.size());
-    for (size_t i = 0; i < name.size(); ++i) {
-        const unsigned char c = (unsigned char) name[i];
-        if (std::isalnum(c)) {
-            out += (char) std::tolower(c);
-        }
-    }
-    return out;
-}
-
-// Collapse extra version digits between qwen{N} and vl (qwen25vl -> qwen2vl)
-// so Qwen2.5-VL still matches qwen2vl instead of the shorter qwen2.
-static std::string llm_arch_normalize_for_guess(const std::string & name) {
-    const std::string s = llm_arch_alnum_lower(name);
-    std::string out;
-    out.reserve(s.size());
-    size_t i = 0;
-    while (i < s.size()) {
-        if (s.compare(i, 4, "qwen") == 0 && i + 4 < s.size() && std::isdigit((unsigned char) s[i + 4])) {
-            size_t j = i + 5;
-            while (j < s.size() && std::isdigit((unsigned char) s[j])) {
-                j++;
-            }
-            if (j > i + 5 && j + 2 <= s.size() && s.compare(j, 2, "vl") == 0) {
-                out.append(s, i, 5);
-                out += "vl";
-                i = j + 2;
-                continue;
-            }
-        }
-        out += s[i];
-        i++;
-    }
-    return out;
-}
-
-llm_arch llm_arch_guess_from_name(const std::string & name) {
-    const std::string haystack = llm_arch_normalize_for_guess(name);
-    if (haystack.empty()) {
-        return LLM_ARCH_UNKNOWN;
-    }
-
-    llm_arch best     = LLM_ARCH_UNKNOWN;
-    size_t   best_len = 0;
-    for (const llm_arch arch : llm_arch_all()) {
-        const char * nm = llm_arch_name(arch);
-        if (nm == nullptr || nm[0] == '\0') {
-            continue;
-        }
-        const std::string needle = llm_arch_alnum_lower(nm);
-        if (needle.empty() || needle.size() <= best_len) {
-            continue;
-        }
-        if (haystack.find(needle) != std::string::npos) {
-            best     = arch;
-            best_len = needle.size();
-        }
-    }
-    return best;
 }
 
 const llm_tensor_info & llm_tensor_info_for(llm_tensor tensor) {
