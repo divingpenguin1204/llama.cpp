@@ -631,6 +631,11 @@ const char * llm_arch_name(llm_arch arch);
 
 llm_arch llm_arch_from_string(const std::string & name);
 
+// Guess architecture from a free-form model name (HF-style, ADLA, etc.).
+// Case and separators (- _ .) are ignored, and the longest match wins, so
+// "Qwen2-VL-2B-..." maps to qwen2vl rather than the shorter prefix qwen2.
+llm_arch llm_arch_guess_from_name(const std::string & name);
+
 const llm_tensor_info & llm_tensor_info_for(llm_tensor tensor);
 
 bool llm_arch_is_recurrent      (const llm_arch & arch);
