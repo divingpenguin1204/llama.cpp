@@ -120,6 +120,10 @@ private:
     // return llama_ubatch.n_tokens == 0 if the entire batch was consumed
     llama_ubatch ubatch_add(const std::vector<int32_t> & idxs, uint32_t n_seqs, bool equal_seqs);
 
+    // dump how batch.pos was obtained (caller-provided vs auto-filled from memory->seq_pos_max)
+    // enabled with LLAMA_BATCH_DEBUG>=1; per-token dump at >=2
+    void print_pos(const llama_memory_i * memory, bool auto_pos) const;
+
     // for debugging, start with LLAMA_BATCH_DEBUG=2
     void ubatch_print(const llama_ubatch & ubatch, int debug);
 
